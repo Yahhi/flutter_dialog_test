@@ -47,10 +47,18 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
   bool _alertIsActive = false;
+  DateTime dialogStarted;
 
-  void _showMessage() {
+  void _showMessage() async {
     _alertIsActive = true;
-    showDialog(
+    dialogStarted = DateTime.now();
+
+    Duration _timerDuration = new Duration(seconds: 5);
+    RestartableTimer _timer =
+        new RestartableTimer(_timerDuration, _dismissTimer);
+    _timer.reset();
+
+    int result = await showDialog(
         barrierDismissible: false,
         context: context,
         builder: (context) => AlertDialog(
@@ -64,12 +72,9 @@ class _MyHomePageState extends State<MyHomePage> {
                 )
               ],
             ));
-    Duration _timerDuration = new Duration(seconds: 5);
-
-// Creating a new timer element.
-    RestartableTimer _timer =
-        new RestartableTimer(_timerDuration, _dismissTimer);
-    _timer.reset();
+    setState(() {
+      _counter = result;
+    });
   }
 
   @override
@@ -83,7 +88,9 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Text(
-              'You have pushed the button this many times:',
+              _counter == 0
+                  ? "Please click on button"
+                  : 'You dismissed dialog after $_counter milliseconds',
             ),
             Text(
               '$_counter',
@@ -102,10 +109,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _dismissTimer() {
     if (_alertIsActive) {
-      setState(() {
-        _counter++;
-      });
-      Navigator.of(context).pop();
+      Navigator.of(context).pop(DateTime.now().millisecondsSinceEpoch -
+          dialogStarted.millisecondsSinceEpoch);
       _alertIsActive = false;
     }
   }
